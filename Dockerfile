@@ -30,4 +30,4 @@ COPY . .
 EXPOSE 443
 
 # Set the entrypoint for the container
-CMD ["gunicorn", "--bind", "0.0.0.0:443", "--workers", "2", "abroad.wsgi:application"]
+CMD ["sh", "-c", "python manage.py migrate && python scripts/assets.py && gunicorn --bind 0.0.0.0:443 --workers 2 abroad.wsgi:application"]

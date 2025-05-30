@@ -20,46 +20,80 @@ django.setup()
 
 from polaris.models import Asset, OffChainAsset, DeliveryMethod, ExchangePair
 
+# usdc = Asset.objects.all().delete() # This line is kept from original
+
+print("Starting asset setup/update...")
+
+# USDC Asset
+usdc, created = Asset.objects.update_or_create(
+    code="USDC",
+    issuer="GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    defaults={
+        "sep38_enabled": True,
+        "sep24_enabled": True,
+        "sep31_enabled": True,
+        "sep6_enabled": True,
+        "withdrawal_enabled": True,
+        "deposit_enabled": False,  # As per original script
+    }
+)
+if created:
+    print(f"Asset {usdc.code} (Issuer: {usdc.issuer}) created.")
+else:
+    print(f"Asset {usdc.code} (Issuer: {usdc.issuer}) updated/verified.")
+
+# DeliveryMethod
+delivery_method, created = DeliveryMethod.objects.update_or_create(
+    name="TRANSFIYA",
+    defaults={
+        "type": "buy",
+        "description": "Transfiya",
+    }
+)
+if created:
+    print(f"DeliveryMethod {delivery_method.name} created.")
+else:
+    print(f"DeliveryMethod {delivery_method.name} updated/verified.")
+
+# OffChainAsset (COP)
+offchain_asset, created = OffChainAsset.objects.update_or_create(
+    identifier="COP",
+    defaults={
+        "country_codes": ["CO"],
+        "symbol": "COP",
+        "scheme": "iso4217",
+    }
+)
+if created:
+    print(f"OffChainAsset {offchain_asset.identifier} created.")
+else:
+    print(f"OffChainAsset {offchain_asset.identifier} updated/verified.")
+
+# Associate DeliveryMethod with OffChainAsset
+if offchain_asset and delivery_method:
+    if not offchain_asset.delivery_methods.filter(pk=delivery_method.pk).exists():
+        offchain_asset.delivery_methods.add(delivery_method)
+        print(f"Associated {delivery_method.name} with {offchain_asset.identifier}.")
+    else:
+        print(f"{delivery_method.name} already associated with {offchain_asset.identifier}.")
+elif not offchain_asset:
+    print("Error: OffChainAsset 'COP' could not be created/fetched, cannot associate delivery method.")
+elif not delivery_method:
+    print("Error: DeliveryMethod 'TRANSFIYA' could not be created/fetched, cannot associate with OffChainAsset.")
 
 
+# ExchangePair
+if usdc and offchain_asset:
+    exchange_pair, created = ExchangePair.objects.update_or_create(
+        buy_asset=offchain_asset,
+        sell_asset=usdc,
+        defaults={}  # No other defaults specified in original script for the pair itself
+    )
+    if created:
+        print(f"ExchangePair {offchain_asset.identifier}/{usdc.code} created.")
+    else:
+        print(f"ExchangePair {offchain_asset.identifier}/{usdc.code} updated/verified.")
+else:
+    print("Error: Cannot create/update ExchangePair due to missing dependent assets (USDC or COP).")
 
-usdc = Asset.objects.all().delete()
-usdc = Asset.objects.filter(code="USDC").first()
-if usdc is None:
-    usdc = Asset()
-    usdc.code = "USDC"
-    usdc.issuer = "GBJ73BHEWY2WJPDYO5JTLY24ORCUSWU2LFY44GVZDHAFRBWZAAQSYMAH"
-    usdc.sep38_enabled = True
-    usdc.sep24_enabled = True
-    usdc.sep31_enabled = True
-    usdc.sep6_enabled = True
-    usdc.withdrawal_enabled = True
-    usdc.deposit_enabled = False
-    usdc.save()
-    
-delivery_method = DeliveryMethod.objects.filter(name="TRANSFIYA").first()
-if delivery_method is None:
-    delivery_method = DeliveryMethod()
-    delivery_method.type = "buy"
-    delivery_method.description = "Transfiya"
-    delivery_method.name = "TRANSFIYA"
-    delivery_method.save()
-    
-    
-    
-offchain_asset = OffChainAsset.objects.filter(identifier="COP").first()
-if offchain_asset is None:
-    offchain_asset = OffChainAsset()
-    offchain_asset.country_codes = ["CO"]
-    offchain_asset.identifier = "COP"
-    offchain_asset.symbol = "COP"
-    offchain_asset.scheme = "iso4217"
-    offchain_asset.save()
-    offchain_asset.delivery_methods.set([delivery_method]) 
-
-exchange_pair = ExchangePair.objects.filter(buy_asset=offchain_asset, sell_asset=usdc).first()
-if exchange_pair is None:
-    exchange_pair = ExchangePair()
-    exchange_pair.buy_asset = offchain_asset
-    exchange_pair.sell_asset = usdc
-    exchange_pair.save()
+print("Asset setup/update finished.")
