@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +22,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-hbc*#-ue!5l4zhv1mi^v_f=aqjfrgnlphm=3j71!!^r4&-qjr6"
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-hbc*#-ue!5l4zhv1mi^v_f=aqjfrgnlphm=3j71!!^r4&-qjr6")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG is True if DJANGO_DEBUG is not 'False'.
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() != "false"
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS_STRING = os.environ.get("DJANGO_ALLOWED_HOSTS", "")
+if ALLOWED_HOSTS_STRING:
+    ALLOWED_HOSTS = ALLOWED_HOSTS_STRING.split(",")
+else:
+    ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -79,12 +86,19 @@ WSGI_APPLICATION = "abroad.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+if DEBUG:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": dj_database_url.config(conn_max_age=600)
+    }
+    # If you want to use a default URL if DATABASE_URL is not set, you can do:
+    # DATABASES['default'] = dj_database_url.config(default='postgres://user:pass@host/dbname', conn_max_age=600, ssl_require=True)
 
 
 # Password validation
@@ -131,8 +145,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
 SESSION_COOKIE_SECURE = True
 
-import os
 
-STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+PARTNER_API_BASE_URL= "http://localhost:3784"
+PARTNER_API_KEY = "test"
