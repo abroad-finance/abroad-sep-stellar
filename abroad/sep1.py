@@ -2,7 +2,7 @@ from rest_framework.request import Request
 from polaris.integrations.toml import get_stellar_toml
 
 def return_toml_contents(request, *args, **kwargs):
-    toml = get_stellar_toml()
+    toml = get_stellar_toml(request, *args, **kwargs)
     return {
         "ORG_NAME": "Abroad.Finance",
         "ORG_DBA": "Abroad Financial Technologies Ltd.",
