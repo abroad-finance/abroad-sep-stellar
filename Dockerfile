@@ -27,7 +27,7 @@ COPY . .
 # RUN python manage.py collectstatic --noinput
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 443
 
 # Set the entrypoint for the container
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "abroad.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:443", "--workers", "2", "abroad.wsgi:application"]
