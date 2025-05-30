@@ -86,7 +86,7 @@ WSGI_APPLICATION = "abroad.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if os.environ.get("DJANGO_DATABASE_URL") is None:
+if os.environ.get("DATABASE_URL") is None:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
