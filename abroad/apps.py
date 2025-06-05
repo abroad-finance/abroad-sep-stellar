@@ -12,5 +12,5 @@ class AbroadConfig(AppConfig):
         register_integrations(
             toml=return_toml_contents,
             quote=QuoteIntegration(),
-            withdrawal=WithdrawalAbroad()
+            withdrawal=WithdrawalAbroad(),
         )
