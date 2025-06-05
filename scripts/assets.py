@@ -20,7 +20,7 @@ django.setup()
 
 from polaris.models import Asset, OffChainAsset, DeliveryMethod, ExchangePair
 
-Asset.objects.all().delete() # This line is kept from original
+# Asset.objects.all().delete()
 
 print("Starting asset setup/update...")
 
@@ -36,7 +36,7 @@ usdc, created = Asset.objects.update_or_create(
         "withdrawal_max_amount": 800,
         "withdrawal_min_amount": 1,
         "withdrawal_enabled": True,
-        "deposit_enabled": False,  # As per original script
+        "deposit_enabled": False,
     }
 )
 if created:
