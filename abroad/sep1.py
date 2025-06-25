@@ -4,7 +4,6 @@ from polaris.integrations.toml import get_stellar_toml
 def return_toml_contents(request, *args, **kwargs):
     toml = get_stellar_toml(request, *args, **kwargs)
     return {
-        "NETWORK_PASSPHRASE": "Public Global Stellar Network ; September 2015",
         "ORG_NAME": "Abroad.Finance",
         "ORG_DBA": "Abroad Financial Technologies Ltd.",
         "ORG_URL": "https://abroad.finance",
