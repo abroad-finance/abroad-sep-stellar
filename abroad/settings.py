@@ -22,7 +22,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-hbc*#-ue!5l4zhv1mi^v_f=aqjfrgnlphm=3j71!!^r4&-qjr6")
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY", "django-insecure-hbc*#-ue!5l4zhv1mi^v_f=aqjfrgnlphm=3j71!!^r4&-qjr6")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG is True if DJANGO_DEBUG is not 'False'.
@@ -149,5 +150,10 @@ SESSION_COOKIE_SECURE = True
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-PARTNER_API_BASE_URL= "http://localhost:3784"
-PARTNER_API_KEY = "test"
+local_mode = os.environ.get("LOCAL_MODE", "0").lower() == "1"
+
+if not local_mode:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True

@@ -1,6 +1,7 @@
 from rest_framework.request import Request
 from polaris.integrations.toml import get_stellar_toml
 
+
 def return_toml_contents(request, *args, **kwargs):
     toml = get_stellar_toml(request, *args, **kwargs)
     return {
