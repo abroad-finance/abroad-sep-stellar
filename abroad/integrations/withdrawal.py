@@ -48,7 +48,9 @@ class WithdrawalAbroad(WithdrawalIntegration):
         """
         transaction.amount_expected = Decimal(request.query_params.get("amount_expected"))
         transaction.memo = request.query_params.get("memo", "")
+        transaction.memo_type = "text"
         transaction.status = Transaction.STATUS.pending_user_transfer_start
+        transaction.receiving_anchor_account = "GCLMP4CYNFN62DDKPRMFWU4FQZFJBUL4CPTJ3JAGIHM72UNB6IX5HUGK"
         transaction.save()
 
     def patch_transaction(
