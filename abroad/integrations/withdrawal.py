@@ -41,7 +41,7 @@ class WithdrawalAbroad(WithdrawalIntegration):
         base_url = os.environ.get("INTERACTIVE_URL_BASE", "http://localhost:5173")
         token = request.query_params.get("token")
         address = transaction.stellar_account
-        return f"{base_url}/?transaction_id={transaction.id}&asset_code={asset.code}&callback={callback}&lang={lang}&token={token}&source_amount={amount}&address={address}&qr_scanner=true"
+        return f"{base_url}/?transaction_id={transaction.id}&asset_code={asset.code}&callback={callback}&lang={lang}&token={token}&source_amount={amount}&address={address}"
 
     def after_interactive_flow(self, request: Request, transaction: Transaction):
         """
