@@ -2,13 +2,9 @@ from typing import Dict, Optional, List
 from decimal import Decimal
 import os
 
-from django import forms
-from django.http import QueryDict
 from rest_framework.request import Request
 
 from polaris.models import Transaction, Asset
-from polaris.integrations.forms import TransactionForm
-from polaris.templates import Template
 from polaris.sep10.token import SEP10Token
 from polaris.integrations.transactions import WithdrawalIntegration
 
@@ -48,9 +44,10 @@ class WithdrawalAbroad(WithdrawalIntegration):
         Same as ``DepositIntegration.after_interactive_flow``
         """
         transaction.amount_expected = Decimal(request.query_params.get("amount_expected"))
+        transaction.amount_in = Decimal(request.query_params.get("amount_expected"))
+        transaction.status = Transaction.STATUS.pending_user_transfer_start
         transaction.memo = request.query_params.get("memo", "")
         transaction.memo_type = "text"
-        transaction.status = Transaction.STATUS.pending_user_transfer_start
         transaction.receiving_anchor_account = "GCLMP4CYNFN62DDKPRMFWU4FQZFJBUL4CPTJ3JAGIHM72UNB6IX5HUGK"
         transaction.save()
 

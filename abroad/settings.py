@@ -152,6 +152,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 local_mode = os.environ.get("LOCAL_MODE", "0").lower() == "1"
 
+# Optional shared secret for /abroad → webhook callbacks
+ABROAD_WEBHOOK_SECRET = os.environ.get("ABROAD_WEBHOOK_SECRET")
+
 if not local_mode:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
     USE_X_FORWARDED_HOST = True

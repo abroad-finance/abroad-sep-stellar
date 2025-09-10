@@ -16,10 +16,13 @@ Including another URLconf
 """
 import polaris.urls
 from django.urls import path, include
+from abroad.webhooks import abroad_transaction_webhook
 from django.contrib import admin
 from django.urls import path
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include(polaris.urls)),
+    # Webhook endpoint for /abroad transaction events
+    path("webhooks/abroad/transactions", abroad_transaction_webhook),
 ]
