@@ -2,6 +2,8 @@ import os
 import sys # Import the sys module
 import django
 
+from stellar_sdk.keypair import Keypair
+
 # Add the project root directory to the Python path
 # This ensures that the 'abroad' module (containing settings.py) can be found.
 # __file__ refers to the current script: /workspaces/abroad-polaris/scripts/assets.py
@@ -24,17 +26,32 @@ from polaris.models import Asset, OffChainAsset, DeliveryMethod, ExchangePair
 
 print("Starting asset setup/update...")
 
+asset_code = os.environ.get("ASSET_CODE", "USDC")
+signing_seed = os.environ.get("SIGNING_SEED")
+default_issuer = None
+if signing_seed:
+    try:
+        default_issuer = Keypair.from_secret(signing_seed).public_key
+    except Exception as exc:
+        raise RuntimeError("SIGNING_SEED is set but invalid") from exc
+asset_issuer = os.environ.get("ASSET_ISSUER_ACCOUNT", default_issuer)
+
+if not asset_issuer:
+    raise RuntimeError(
+        "ASSET_ISSUER_ACCOUNT is not set and no SIGNING_SEED is available to default the issuer."
+    )
+
 # USDC Asset
 usdc, created = Asset.objects.update_or_create(
-    code="USDC",
-    issuer="GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+    code=asset_code,
     defaults={
-        "sep38_enabled": True,
+        "issuer": asset_issuer,
+        "sep38_enabled": False,
         "sep24_enabled": True,
-        "sep31_enabled": True,
-        "sep6_enabled": True,
-        "withdrawal_max_amount": 800,
-        "withdrawal_min_amount": 1,
+        "sep31_enabled": False,
+        "sep6_enabled": False,
+        "withdrawal_max_amount": 1000,
+        "withdrawal_min_amount": 2,
         "withdrawal_enabled": True,
         "deposit_enabled": False,
     }

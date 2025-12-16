@@ -1,10 +1,32 @@
 from rest_framework.request import Request
+
+from polaris import settings as polaris_settings
 from polaris.integrations.toml import get_stellar_toml
+from polaris.models import Asset
 
 
-def return_toml_contents(request, *args, **kwargs):
+def _build_accounts():
+    accounts = []
+    for asset in Asset.objects.all():
+        account = asset.distribution_account or asset.issuer
+        if account:
+            accounts.append(account)
+    if polaris_settings.SIGNING_KEY:
+        accounts.append(polaris_settings.SIGNING_KEY)
+
+    unique_accounts = []
+    seen = set()
+    for account in accounts:
+        if account not in seen:
+            unique_accounts.append(account)
+            seen.add(account)
+    return unique_accounts
+
+
+def return_toml_contents(request: Request, *args, **kwargs):
     toml = get_stellar_toml(request, *args, **kwargs)
-    return {
+    toml["ACCOUNTS"] = _build_accounts()
+    toml["DOCUMENTATION"] = {
         "ORG_NAME": "Abroad.Finance",
         "ORG_DBA": "Abroad Financial Technologies Ltd.",
         "ORG_URL": "https://abroad.finance",
@@ -21,5 +43,5 @@ def return_toml_contents(request, *args, **kwargs):
         "ORG_LICENSING_AUTHORITY": "N/A",
         "ORG_LICENSE_TYPE": "N/A",
         "ORG_LICENSE_NUMBER": "N/A",
-        **toml,
     }
+    return toml

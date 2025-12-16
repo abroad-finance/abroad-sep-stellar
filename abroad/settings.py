@@ -152,6 +152,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 local_mode = os.environ.get("LOCAL_MODE", "0").lower() == "1"
 
+# CORS has to allow the stellar.toml to be fetched by any client
+CORS_ALLOW_ALL_ORIGINS = True
+
 # Optional shared secret for /abroad → webhook callbacks
 ABROAD_WEBHOOK_SECRET = os.environ.get("ABROAD_WEBHOOK_SECRET")
 
