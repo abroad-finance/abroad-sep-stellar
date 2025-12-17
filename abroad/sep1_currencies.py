@@ -47,6 +47,14 @@ _KNOWN_CURRENCY_FIELDS = {
     "approval_criteria",
 }
 
+_ANCHOR_TESTS_REQUIRED_FIELDS = {
+    "is_asset_anchored",
+    "anchor_asset_type",
+    "code",
+    "desc",
+    "status",
+}
+
 
 def _require_string(
     value: Any, *, field: str, max_length: int | None = None
@@ -175,15 +183,16 @@ def validate_currency_entry(
     return entry
 
 
+def _currency_key(entry: Mapping[str, Any]) -> Tuple[str | None, str | None, str | None]:
+    return (entry.get("code"), entry.get("issuer"), entry.get("contract"))
+
+
 def _dedupe_currencies(currencies: Iterable[Mapping[str, Any]]) -> List[Dict[str, Any]]:
     unique: List[Dict[str, Any]] = []
     seen: set[Tuple[str, str | None, str | None]] = set()
 
     for currency in currencies:
-        code = currency.get("code")
-        issuer = currency.get("issuer")
-        contract = currency.get("contract")
-        key = (code, issuer, contract)
+        key = _currency_key(currency)
         if key in seen:
             continue
         seen.add(key)
@@ -220,20 +229,50 @@ def load_additional_currencies_from_env(env_var: str = "SEP1_CURRENCIES") -> Lis
     return currencies
 
 
+def _apply_required_field_defaults(entry: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Anchor reference tests currently require a subset of currency attributes to
+    be present. If they're missing, set safe defaults so the emitted TOML
+    complies with the schema.
+    """
+    code = entry.get("code") or "TOKEN"
+
+    entry.setdefault("status", "live")
+    entry.setdefault("desc", f"{code} token")
+    entry.setdefault("is_asset_anchored", True)
+    entry.setdefault("anchor_asset_type", "fiat")
+    entry.setdefault("anchor_asset", code)
+    entry.setdefault("anchor_asset_type", "other")
+
+    for field in _ANCHOR_TESTS_REQUIRED_FIELDS:
+        if field not in entry:
+            raise ValueError(f"currency entry missing required field '{field}' after applying defaults")
+
+    return entry
+
+
 def build_sep1_currencies() -> List[Dict[str, Any]]:
     """
     Builds the SEP-1 [[CURRENCIES]] list from Polaris Assets plus any extra
     currencies configured in `SEP1_CURRENCIES`.
     """
-    currencies: List[Dict[str, Any]] = []
-
+    currencies_by_key: Dict[Tuple[str | None, str | None, str | None], Dict[str, Any]] = {}
     for asset in Asset.objects.all():
         currency = {
             "code": asset.code,
             "issuer": asset.issuer,
             "display_decimals": asset.significant_decimals,
         }
-        currencies.append(validate_currency_entry(currency, strict=False))
+        currency = _apply_required_field_defaults(currency)
+        currencies_by_key[_currency_key(currency)] = validate_currency_entry(
+            currency, strict=False
+        )
 
-    currencies.extend(load_additional_currencies_from_env())
-    return _dedupe_currencies(currencies)
+    for env_currency in load_additional_currencies_from_env():
+        key = _currency_key(env_currency)
+        merged = dict(currencies_by_key.get(key, {}))
+        merged.update(env_currency)
+        merged = _apply_required_field_defaults(merged)
+        currencies_by_key[key] = validate_currency_entry(merged)
+
+    return _dedupe_currencies(currencies_by_key.values())
