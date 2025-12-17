@@ -144,7 +144,11 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
+# Use Django's built-in form rendering templates. Using TemplatesSetting requires
+# adding Django's form template directory to TEMPLATES["DIRS"], otherwise admin
+# (and any form error rendering) can raise TemplateDoesNotExist for
+# `django/forms/errors/list/default.html`.
+FORM_RENDERER = "django.forms.renderers.DjangoTemplates"
 SESSION_COOKIE_SECURE = True
 
 
