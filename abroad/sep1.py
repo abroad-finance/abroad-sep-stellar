@@ -4,6 +4,8 @@ from polaris import settings as polaris_settings
 from polaris.integrations.toml import get_stellar_toml
 from polaris.models import Asset
 
+from .sep1_currencies import build_sep1_currencies
+
 
 def _build_accounts():
     accounts = []
@@ -26,6 +28,7 @@ def _build_accounts():
 def return_toml_contents(request: Request, *args, **kwargs):
     toml = get_stellar_toml(request, *args, **kwargs)
     toml["ACCOUNTS"] = _build_accounts()
+    toml["CURRENCIES"] = build_sep1_currencies()
     toml["DOCUMENTATION"] = {
         "ORG_NAME": "Abroad.Finance",
         "ORG_DBA": "Abroad Financial Technologies Ltd.",
