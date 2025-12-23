@@ -38,6 +38,7 @@ class WithdrawalAbroad(WithdrawalIntegration):
         token = request.query_params.get("token")
         address = transaction.stellar_account
         qr_scanner = request.query_params.get("qr_scanner")
+        on_change_callback = request.query_params.get("on_change_callback")
         url = (
             f"{base_url}/?transaction_id={transaction.id}"
             f"&asset_code={asset.code}"
@@ -47,6 +48,8 @@ class WithdrawalAbroad(WithdrawalIntegration):
             f"&source_amount={amount}"
             f"&address={address}"
         )
+        if on_change_callback is not None:
+            url += f"&on_change_callback={on_change_callback}"
         if qr_scanner is not None:
             url += f"&qr_scanner={qr_scanner}"
         return url
